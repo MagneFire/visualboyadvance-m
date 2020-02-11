@@ -491,7 +491,7 @@ static void sdlOpenGLVideoResize()
   SDL_GetWindowSize(window, &W, &H);
   sdlOpenGLScaleWithAspect(W, H);
 #else
-  sdlOpenGLScaleWithAspect(destWidth, destHeight)
+  sdlOpenGLScaleWithAspect(destWidth, destHeight);
 #endif
 }
 
@@ -849,8 +849,8 @@ static void sdlResizeVideo() {
 
   if(!openGL && surface == NULL) {
     systemMessage(0, "Failed to set video mode");
-    SDL_Quit();
-    exit(-1);
+    //SDL_Quit();
+    //exit(-1);
   }
 }
 
@@ -891,8 +891,8 @@ void sdlInitVideo() {
 
   if(window == NULL) {
     systemMessage(0, "Failed to set video mode");
-    SDL_Quit();
-    exit(-1);
+    //SDL_Quit();
+    //exit(-1);
   }
 
   u32 rmask, gmask, bmask;
@@ -1930,7 +1930,7 @@ int main(int argc, char **argv)
 
   if(SDL_Init(flags) < 0) {
     systemMessage(0, "Failed to init SDL: %s", SDL_GetError());
-    exit(-1);
+    //exit(-1);
   }
 
   if(SDL_InitSubSystem(SDL_INIT_JOYSTICK) < 0) {

@@ -62,6 +62,7 @@ add_custom_target(generate)
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 option(ENABLE_SDL "Build the SDL port" OFF)
+option(ENABLE_GLES "Build with GLES instead of GL" OFF)
 option(ENABLE_WX "Build the wxWidgets port" ON)
 option(ENABLE_DEBUGGER "Enable the debugger" ON)
 option(ENABLE_ASAN "Enable -fsanitize=<option>, address by default, requires debug build" OFF)
@@ -310,7 +311,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
     set(OpenGL_GL_PREFERENCE LEGACY)
 endif()
 
+if(ENABLE_GLES)
+find_package(OpenGLES REQUIRED)
+else()
 find_package(OpenGL REQUIRED)
+endif ()
 find_package(PNG    REQUIRED)
 find_package(SDL2   REQUIRED)
 
@@ -326,6 +331,7 @@ set(
     ${SDL2_LIBRARY}
     ${SFML_LIBRARIES}
     ${OPENGL_LIBRARIES}
+    ${OPENGLES_gl_LIBRARY}
     ${ZLIB_LIBRARY}
     ${PNG_LIBRARY}
 )
@@ -355,7 +361,12 @@ endif()
 include(GNUInstallDirs)
 
 # C defines
-add_definitions(-DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H -DHAVE_ZLIB_H -DFINAL_VERSION -DSDL -DUSE_OPENGL -DSYSCONF_INSTALL_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}" -DWITH_LIRC=${WITHLIRC})
+
+if( ENABLE_GLES )
+    add_definitions(-DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H -DHAVE_ZLIB_H -DFINAL_VERSION -DSDL -DUSE_OPENGLES -DSYSCONF_INSTALL_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}" -DWITH_LIRC=${WITHLIRC})
+else ( )
+    add_definitions(-DHAVE_NETINET_IN_H -DHAVE_ARPA_INET_H -DHAVE_ZLIB_H -DFINAL_VERSION -DSDL -DUSE_OPENGL -DSYSCONF_INSTALL_DIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}" -DWITH_LIRC=${WITHLIRC})
+endif( ENABLE_GLES )
 add_definitions(-DPKGDATADIR="${CMAKE_INSTALL_FULL_DATADIR}/vbam" -DPACKAGE=)
 
 add_definitions(-D__STDC_FORMAT_MACROS)

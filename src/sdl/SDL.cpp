@@ -33,6 +33,9 @@
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/glext.h>
 #include <OpenGL/glu.h>
+#elif defined(USE_OPENGLES)
+#include <GLES/gl.h>
+#include <GLES/glext.h>
 #else
 #include <GL/gl.h>
 #include <GL/glext.h>
@@ -498,10 +501,19 @@ void sdlOpenGLInit(int w, int h)
     glDisable(GL_CULL_FACE);
     glEnable(GL_TEXTURE_2D);
 
+#ifdef USE_OPENGLES
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+#endif
+
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
+#ifdef USE_OPENGLES
+    glOrthof(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
+#else
     glOrtho(0.0, 1.0, 1.0, 0.0, 0.0, 1.0);
+#endif
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -829,6 +841,10 @@ void sdlInitVideo()
         SDL_DestroyWindow(window);
     if (renderer)
         SDL_DestroyRenderer(renderer);
+#ifdef USE_OPENGLES
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+#endif
     window = SDL_CreateWindow("VBA-M", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         screenWidth, screenHeight, flags);
     if (!openGL) {
@@ -1990,8 +2006,27 @@ void systemDrawScreen()
         drawSpeed(screen, destPitch, 10, 20);
 
     if (openGL) {
+#ifdef USE_OPENGLES
+        float xf = (float)destWidth / (float)textureSize;
+        float yf = (float)destHeight / (float)textureSize;
+        float texcoords[] = {
+            0.f, 0.f,
+            xf, 0.f,
+            0.f, yf,
+            xf, yf,
+        };
+
+        float vtxcoords[] = {
+            0.f, 0.f,
+            1.f, 0.f,
+            0.f, 1.f,
+            1.f, 1.f,
+        };
+#endif
         glClear(GL_COLOR_BUFFER_BIT);
+#ifndef USE_OPENGLES
         glPixelStorei(GL_UNPACK_ROW_LENGTH, destWidth);
+#endif
         if (systemColorDepth == 16)
             glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, destWidth, destHeight,
                 GL_RGB, GL_UNSIGNED_SHORT_5_6_5, screen);
@@ -2000,6 +2035,11 @@ void systemDrawScreen()
                 //GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, screen);
                 GL_RGBA, GL_UNSIGNED_BYTE, screen);
 
+#ifdef USE_OPENGLES
+        glVertexPointer(2, GL_FLOAT, 0, &vtxcoords);
+        glTexCoordPointer(2, GL_FLOAT, 0, &texcoords);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+#else
         glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0.0f, 0.0f);
         glVertex3i(0, 0, 0);
@@ -2011,6 +2051,7 @@ void systemDrawScreen()
             destHeight / (GLfloat)textureSize);
         glVertex3i(1, 1, 0);
         glEnd();
+#endif
         SDL_GL_SwapWindow(window);
     } else {
         SDL_UnlockSurface(surface);

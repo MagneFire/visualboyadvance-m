@@ -15,7 +15,7 @@ function(host_compile src dst_cmd)
         # assume cc foo.c -o foo # will work on most hosts
         add_custom_command(
             OUTPUT ${dst}
-            COMMAND cc ${src} -o ${dst} ${link_flags}
+            COMMAND gcc ${src} -o ${dst} ${link_flags}
             DEPENDS ${src}
         )
     else()

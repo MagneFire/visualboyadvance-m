@@ -374,8 +374,9 @@ void inputInitJoysticks()
 
     if (sdlNumDevices)
         sdlDevices = (SDL_Joystick**)calloc(1, sdlNumDevices * sizeof(SDL_Joystick**));
-    bool usesJoy = false;
+    bool usesJoy = true;
 
+    SDL_JoystickOpen(0);
     for (int j = 0; j < 4; j++) {
         for (int i = 0; i < SDLBUTTONS_NUM; i++) {
             int dev = joypad[j][i] >> 16;
@@ -402,7 +403,8 @@ void inputInitJoysticks()
         }
     }
 
-    for (int i = 0; i < 4; i++) {
+
+   /* for (int i = 0; i < 4; i++) {
         int dev = motion[i] >> 16;
         if (dev) {
             dev--;
@@ -424,7 +426,7 @@ void inputInitJoysticks()
             else
                 usesJoy = true;
         }
-    }
+    }*/
 
     if (usesJoy)
         SDL_JoystickEventState(SDL_ENABLE);
